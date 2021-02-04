@@ -11,7 +11,7 @@
  *
  */
 
-import { DElETE, ELEMENT_TEXT, PLACEMENT, TAG_CLASS, TAG_HOST, TAG_ROOT, TAG_TEXT, UPDATE } from "./constants"
+import { DElETE, ELEMENT_TEXT, PLACEMENT, TAG_CLASS, TAG_FUNCTION, TAG_HOST, TAG_ROOT, TAG_TEXT, UPDATE } from "./constants"
 import { UpdateQueue } from "./updateQueue.ts"
 import { setProps } from "./utils"
 
@@ -125,7 +125,7 @@ function performUnitOfWork(currentFiber) {
     // child指向第一个子节点
     return currentFiber.firstChild
   }
-  debugger
+
   // 找到最下层的子节点
   while (currentFiber) {
     completeUnitOfWork(currentFiber)
@@ -214,6 +214,8 @@ function beginWork(fiber) {
     updateHost(fiber)
   } else if (fiber.tag === TAG_CLASS) {
     updateClassComponents(fiber)
+  } else if (fiber.tag === TAG_FUNCTION) {
+    updateFunctionComponent(fiber)
   }
 }
 
@@ -280,6 +282,12 @@ function updateClassComponents(currentFiber) {
 
   reconcileChildren(currentFiber, newChildren)
 }
+
+function updateFunctionComponent(currentFiber) {
+  const newChildren = [currentFiber.type(currentFiber.props)]
+
+  reconcileChildren(currentFiber, newChildren)
+}
 /**
  *
  *
@@ -301,22 +309,31 @@ function reconcileChildren(currentFiber, newChildren) {
   let oldFiber = currentFiber.alternate && currentFiber.alternate.firstChild
   oldFiber && (oldFiber.firstEffect = oldFiber.lastEffect = oldFiber.nextEffect = null)
   while (newChildIndex < newChildren.length || oldFiber) {
+    /** 因为做了newChildIndex 和 oldFiber 的联合判断，所以可能newChild不存在，即现在的节点数比之前少 */
     let newChild = newChildren[newChildIndex]
+    // if (Array.isArray(newChild)) {
+    //   let propsChildIndex = 0
+    //   while (propsChildIndex < newChild.length) {
+    //     reconcileChildren(currentFiber, newChildren[propsChildIndex])
+    //     ++propsChildIndex
+    //   }
+    // }
     let newFiber
     // diff
     const sampleType = oldFiber && newChild && oldFiber.type == newChild.type
     let tag
-    // 因为做了newChildIndex 和 OldFiberIndex的联合判断，所以可能newChild不存在，即现在的节点数比之前少
-
-    if (newChild?.type === ELEMENT_TEXT) {
+    // console.log(newChild.type.prototype)
+    if (newChild && typeof newChild.type === "function" && newChild.type.prototype.isReactComponent) {
+      tag = TAG_CLASS
+    } else if (/**函数组件*/ newChild && typeof newChild.type === "function") {
+      tag = TAG_FUNCTION
+    } else if (/**文本节点*/ newChild?.type === ELEMENT_TEXT) {
       //文本节点
       tag = TAG_TEXT
-      // 因为做了newChildIndex 和 OldFiberIndex的联合判断，所以可能newChild不存在，即现在的节点数比之前少
-    } else if (typeof newChild?.type === "string") {
-      // 原生节点
+    } else if (/**原生节点*/ typeof newChild?.type === "string") {
       tag = TAG_HOST
-    } else if (newChild && typeof newChild.type === "function" && newChild.type.prototype.isReactComponent) {
-      tag = TAG_CLASS
+    }else{
+      console.log(currentFiber)
     }
     //老的dom节点和新的dom类型一样，则说明可以复用
     if (sampleType) {
@@ -366,6 +383,7 @@ function reconcileChildren(currentFiber, newChildren) {
     if (newFiber) {
       if (newChildIndex == 0) {
         // 第一个子元素情况下，把第一个子节点挂到父节点的child下
+
         currentFiber.firstChild = newFiber
       } else {
         preSibling.sibling = newFiber

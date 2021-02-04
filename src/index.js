@@ -20,28 +20,13 @@ const el = (
   </div>
 )
 
-class Ds extends React.Component {
-  constructor() {
-    super()
-    this.state = {
-      count: 0,
-    }
-  }
-
-  add = () => {
-    this.setState({
-      count: this.state.count + 1,
-    })
-  }
-
-  render() {
-    return (
-      <div>
-        {this.state.count}
-        <button onClick={this.add}>add</button>
-      </div>
-    )
-  }
+function Dice(props) {
+  console.log(props.children)
+  return (
+    <div>
+      {props.title}---dice--{props.children}
+    </div>
+  )
 }
 
 class Com extends React.Component {
@@ -64,12 +49,22 @@ class Com extends React.Component {
         {this.state.count}
         {this.props.title}
         <button onClick={this.add}>add</button>
+        {this.props.children}
       </div>
     )
   }
 }
 
-ReactDOM.render(<Com title='去你妈的'></Com>, document.getElementById("root"))
+ReactDOM.render(
+  <div>
+    <Dice title='?'>
+      <Com title='淦'>
+        <div>222</div>
+      </Com>
+    </Dice>
+  </div>,
+  document.getElementById("root")
+)
 
 let render2 = document.getElementById("render2")
 

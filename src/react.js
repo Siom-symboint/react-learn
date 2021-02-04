@@ -21,7 +21,7 @@ function createElement(type, config, ...children) {
               type: ELEMENT_TEXT,
               props: { text: child, children: [] },
             }
-      }),
+      }).flat(Infinity),
     },
   }
 }
