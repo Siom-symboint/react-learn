@@ -283,6 +283,9 @@ function updateClassComponents(currentFiber) {
   reconcileChildren(currentFiber, newChildren)
 }
 
+/**
+ * 每次只有更新function Component时，就触发该函数，记录到当前更新的Fiber 以便useReducer里拿到
+ */
 let workInProgressFiber = null
 let hookIndex = null
 function updateFunctionComponent(currentFiber) {

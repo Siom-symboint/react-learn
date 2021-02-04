@@ -67,7 +67,13 @@ class Com extends React.Component {
   }
 }
 
-ReactDOM.render(<Dice title='淦**的函数组件'></Dice>, document.getElementById("root"))
+ReactDOM.render(
+  <div>
+    <Dice title='淦**的函数组件'></Dice>
+    <Dice title='淦**的函数组件'></Dice>
+  </div>,
+  document.getElementById("root")
+)
 
 let render2 = document.getElementById("render2")
 
