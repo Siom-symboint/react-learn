@@ -10,7 +10,7 @@ export class UpdateQueue {
   lastUpdate: any
   constructor() {
     this.firstUpdate = null
-    this.lastUpdate
+    this.lastUpdate = null
   }
 
   enqueueUpdate(update: any) {
@@ -27,7 +27,7 @@ export class UpdateQueue {
     while (currentUpdate) {
       state = typeof currentUpdate.payload === "function" ? currentUpdate.payload(state) : currentUpdate.payload
       state = { ...state, ...currentUpdate.payload }
-      
+
       currentUpdate = currentUpdate.nextUpdate
     }
     this.firstUpdate = this.lastUpdate = null

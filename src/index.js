@@ -1,5 +1,6 @@
 import React from "./react"
 import ReactDOM from "./react-dom"
+import { useReducer } from "./schedule-update-component"
 const style = { border: "3px solid red", margin: "5px" }
 const el = (
   <div id='A1' style={style}>
@@ -20,11 +21,24 @@ const el = (
   </div>
 )
 
+const ADD = "Add"
+function reducer(state, action) {
+  switch (action.type) {
+    case ADD:
+      return { count: state.count + 1 }
+      break
+
+    default:
+      break
+  }
+}
+
 function Dice(props) {
-  console.log(props.children)
+  const [state, dispatch] = useReducer(reducer, { count: 0 })
   return (
     <div>
-      {props.title}---dice--{props.children}
+      {props.title}---{state.count}-- <button onClick={() => dispatch({ type: ADD })}>add</button>
+      <Com title='淦**的class组件'></Com>
     </div>
   )
 }
@@ -46,25 +60,14 @@ class Com extends React.Component {
   render() {
     return (
       <div>
-        {this.state.count}
-        {this.props.title}
-        <button onClick={this.add}>add</button>
+        {this.props.title}----{this.state.count}---<button onClick={this.add}>add</button>
         {this.props.children}
       </div>
     )
   }
 }
 
-ReactDOM.render(
-  <div>
-    <Dice title='?'>
-      <Com title='淦'>
-        <div>222</div>
-      </Com>
-    </Dice>
-  </div>,
-  document.getElementById("root")
-)
+ReactDOM.render(<Dice title='淦**的函数组件'></Dice>, document.getElementById("root"))
 
 let render2 = document.getElementById("render2")
 

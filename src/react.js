@@ -14,14 +14,26 @@ function createElement(type, config, ...children) {
     type,
     props: {
       ...config,
-      children: children.map((child) => {
-        return typeof child === "object"
-          ? child
-          : {
+      children: children
+        .map((child) => {
+          // 要想办法判断是正确的React.createElement出来的对象
+          if (typeof child === "object") {
+            if (child.type && child.props) {
+              return child
+            } else {
+              return {
+                type: ELEMENT_TEXT,
+                props: { text: child, children: [] },
+              }
+            }
+          } else {
+            return {
               type: ELEMENT_TEXT,
               props: { text: child, children: [] },
             }
-      }).flat(Infinity),
+          }
+        })
+        .flat(Infinity),
     },
   }
 }

@@ -12,7 +12,7 @@
  */
 
 import { DElETE, ELEMENT_TEXT, PLACEMENT, TAG_CLASS, TAG_FUNCTION, TAG_HOST, TAG_ROOT, TAG_TEXT, UPDATE } from "./constants"
-import { UpdateQueue } from "./updateQueue.ts"
+import { Update, UpdateQueue } from "./updateQueue.ts"
 import { setProps } from "./utils"
 
 let nextUnitOfWork = null
@@ -238,7 +238,7 @@ function createDom(fiber) {
 }
 
 function updateDom(stateNode, oldProps, newProps) {
-  if (stateNode.setAttribute) setProps(stateNode, oldProps, newProps)
+  if (stateNode?.setAttribute) setProps(stateNode, oldProps, newProps)
 }
 
 /**
@@ -283,10 +283,35 @@ function updateClassComponents(currentFiber) {
   reconcileChildren(currentFiber, newChildren)
 }
 
+let workInProgressFiber = null
+let hookIndex = null
 function updateFunctionComponent(currentFiber) {
+  workInProgressFiber = currentFiber
+  hookIndex = 0
+  workInProgressFiber.hooks = []
   const newChildren = [currentFiber.type(currentFiber.props)]
 
   reconcileChildren(currentFiber, newChildren)
+}
+
+export function useReducer(reducer, initalValue) {
+  let newHook = workInProgressFiber.alternate && workInProgressFiber.alternate.hooks && workInProgressFiber.alternate.hooks[hookIndex]
+  if (newHook) {
+    newHook.state = newHook.updateQueue.forceUpdate(newHook.state)
+  } else {
+    newHook = {
+      state: initalValue,
+      updateQueue: new UpdateQueue(),
+    }
+  }
+
+  const dispatch = (action) => {
+    newHook.updateQueue.enqueueUpdate(new Update(reducer ? reducer(newHook.state, action) : action))
+    scheduleRoot()
+  }
+  workInProgressFiber.hooks[hookIndex] = newHook
+
+  return [newHook.state, dispatch]
 }
 /**
  *
@@ -311,18 +336,10 @@ function reconcileChildren(currentFiber, newChildren) {
   while (newChildIndex < newChildren.length || oldFiber) {
     /** 因为做了newChildIndex 和 oldFiber 的联合判断，所以可能newChild不存在，即现在的节点数比之前少 */
     let newChild = newChildren[newChildIndex]
-    // if (Array.isArray(newChild)) {
-    //   let propsChildIndex = 0
-    //   while (propsChildIndex < newChild.length) {
-    //     reconcileChildren(currentFiber, newChildren[propsChildIndex])
-    //     ++propsChildIndex
-    //   }
-    // }
     let newFiber
     // diff
     const sampleType = oldFiber && newChild && oldFiber.type == newChild.type
     let tag
-    // console.log(newChild.type.prototype)
     if (newChild && typeof newChild.type === "function" && newChild.type.prototype.isReactComponent) {
       tag = TAG_CLASS
     } else if (/**函数组件*/ newChild && typeof newChild.type === "function") {
@@ -332,8 +349,6 @@ function reconcileChildren(currentFiber, newChildren) {
       tag = TAG_TEXT
     } else if (/**原生节点*/ typeof newChild?.type === "string") {
       tag = TAG_HOST
-    }else{
-      console.log(currentFiber)
     }
     //老的dom节点和新的dom类型一样，则说明可以复用
     if (sampleType) {
