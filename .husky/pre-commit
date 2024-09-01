@@ -1,3 +1,4 @@
 #!/usr/bin/env sh
 
 pnpm lint
+npx --no-install commitlint -e
