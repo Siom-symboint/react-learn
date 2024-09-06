@@ -14,7 +14,7 @@ export const _SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FILE = {
 	currentDispatcher
 };
 
-export const version = '0.0.0';
+export const version = '0.0.1';
 
 export const createElement = jsx;
 
