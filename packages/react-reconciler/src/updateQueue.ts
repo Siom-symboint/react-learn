@@ -1,11 +1,13 @@
 import { Action } from 'shared/ReactTypes';
 import { Update } from './fiberFlags';
+import { Dispatch } from 'react/src/currentDispatcher';
 
 export interface Update<State> {
 	action: Action<State>;
 }
 
 export interface UpdateQueue<State> {
+	dispatch: Dispatch<State> | null;
 	shared: {
 		pending: Update<State> | null;
 	};
@@ -21,7 +23,8 @@ export const createUpdateQueue = <State>() => {
 	return {
 		shared: {
 			pending: null
-		}
+		},
+		dispatch: null
 	} as UpdateQueue<State>;
 };
 

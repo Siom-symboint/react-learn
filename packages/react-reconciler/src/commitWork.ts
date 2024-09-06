@@ -57,9 +57,11 @@ function getHostParent(fiber: FiberNode): Container | null {
 	while (parent) {
 		const parentTag = parent.tag;
 
+		// 对应有stateNode的组件 文本节点fiber和dom节点fiber
 		if (parentTag === HostComponent) {
 			return parent.stateNode as Container;
 		} else if (parentTag === HostRoot) {
+			// 特殊处理  root节点
 			return parent.stateNode.container;
 		}
 
@@ -87,9 +89,9 @@ function appendPlacementNodeIntoContainer(
 
 	if (child !== null) {
 		let sibling = child.sibling;
-
+		appendPlacementNodeIntoContainer(child, hostParent);
 		while (sibling !== null) {
-			appendChildToContainer(hostParent, sibling.stateNode);
+			appendPlacementNodeIntoContainer(sibling.stateNode, hostParent);
 
 			sibling = sibling.sibling;
 		}

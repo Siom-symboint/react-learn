@@ -31,14 +31,14 @@ export default [
 		languageOptions: {
 			globals: {
 				...globals.browser,
-				...globals.node
+				...globals.node,
+				...globals.jest
 			},
 
 			parser: tsParser,
 			ecmaVersion: 'latest',
 			sourceType: 'module'
 		},
-
 		rules: {
 			'prettier/prettier': 'error',
 			'no-case-declarations': 'off',

@@ -7,7 +7,12 @@ import {
 	createTextInstance
 } from 'hostConfig';
 import { FiberNode } from './fiber';
-import { HostComponent, HostRoot, HostText } from './workTag';
+import {
+	FunctionComponent,
+	HostComponent,
+	HostRoot,
+	HostText
+} from './workTag';
 import { NoFlags } from './fiberFlags';
 
 export const completeWork = (wip: FiberNode) => {
@@ -37,9 +42,10 @@ export const completeWork = (wip: FiberNode) => {
 			return null;
 		case HostRoot:
 			bubbleProperties(wip);
-
 			return null;
-
+		case FunctionComponent:
+			bubbleProperties(wip);
+			return null;
 		default:
 			if (___DEV___) {
 				console.warn('completeWork 为实现的类型');

@@ -59,6 +59,10 @@ export class FiberRootNode {
 	constructor(container: Container, hostRootFiber: FiberNode) {
 		this.container = container;
 		this.current = hostRootFiber;
+		/**
+		 * root节点特殊处理，stateNode指向自己,获取root-dom节点通过stateNode.container
+		 * 对于非root节点且有相应dom的节点来说 stateNode即为对应的dom节点
+		 */
 		hostRootFiber.stateNode = this;
 		this.finishedWork = null;
 	}

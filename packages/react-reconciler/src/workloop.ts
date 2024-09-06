@@ -16,6 +16,7 @@ export function scheduleUpdateOnFiber(fiber: FiberNode) {
 	renderRoot(root);
 }
 
+// 从当前更新的节点一直往上找到root
 function markUpdateFromFiberToRoot(fiber: FiberNode) {
 	let node = fiber;
 	let parent = node.return;
