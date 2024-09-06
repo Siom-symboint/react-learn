@@ -1,1 +1,1 @@
-declare let ___DEV___: boolean;
+declare let __DEV__: boolean;

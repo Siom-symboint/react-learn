@@ -5,19 +5,13 @@ import React from 'react';
 // import './index.css';
 
 function App() {
-	const [num] = useState(33);
-
-	return (
-		<div>
-			<span>{num}</span>
-		</div>
-	);
+	const [num, setNum] = useState(3);
+	window.setNum = setNum;
+	return num === 4 ? <Children /> : num;
 }
 
 function Children() {
-	const [num] = useState('children');
-
-	return <span>{num}</span>;
+	return <span>Children</span>;
 }
 
 // debugger;

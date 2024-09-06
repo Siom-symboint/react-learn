@@ -13,8 +13,18 @@ import {
 	HostRoot,
 	HostText
 } from './workTag';
-import { NoFlags } from './fiberFlags';
+import { NoFlags, Update } from './fiberFlags';
 
+function markUpdate(fiber: FiberNode) {
+	fiber.flags |= Update;
+}
+
+/**
+ *
+ * @param wip work in progress fiber
+ * 从下至上 归
+ * 收集整个stateNode, 针对相应的subtreeFlags(子树副作用集合)和flag(本身副作用)
+ */
 export const completeWork = (wip: FiberNode) => {
 	const newProps = wip.pendingProps;
 	const current = wip.alternate;
@@ -34,9 +44,18 @@ export const completeWork = (wip: FiberNode) => {
 			bubbleProperties(wip);
 			return null;
 		case HostText:
-			const instance = createTextInstance(newProps.content);
+			if (current !== null && wip.stateNode) {
+				const oldText = current?.memorizeProps.content;
+				const newText = newProps.content;
+				if (oldText !== newText) {
+					markUpdate(wip);
+				}
+			} else {
+				const instance = createTextInstance(newProps.content);
 
-			wip.stateNode = instance;
+				wip.stateNode = instance;
+			}
+
 			bubbleProperties(wip);
 
 			return null;
@@ -47,7 +66,7 @@ export const completeWork = (wip: FiberNode) => {
 			bubbleProperties(wip);
 			return null;
 		default:
-			if (___DEV___) {
+			if (__DEV__) {
 				console.warn('completeWork 为实现的类型');
 			}
 			return null;

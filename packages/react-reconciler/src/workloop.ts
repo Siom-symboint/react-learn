@@ -41,7 +41,7 @@ function renderRoot(root: FiberRootNode) {
 			workLoop();
 			break;
 		} catch (e) {
-			if (___DEV___) {
+			if (__DEV__) {
 				console.log('workloop 发生错误', e);
 			}
 			workInProgress = null;
@@ -84,6 +84,11 @@ function completeUnitOfWork(fiber: FiberNode) {
 	} while (node !== null);
 }
 
+/**
+ *
+ * @param root
+ * @returns commit阶段 执行在completeWork之后
+ */
 function commitRoot(root: FiberRootNode) {
 	const finishedWork = root.finishedWork;
 
@@ -91,7 +96,7 @@ function commitRoot(root: FiberRootNode) {
 		return;
 	}
 
-	if (___DEV___) {
+	if (__DEV__) {
 		console.warn('commit 阶段开始', finishedWork);
 	}
 	root.finishedWork = null;

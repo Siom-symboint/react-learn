@@ -18,12 +18,13 @@ export class FiberNode {
 	ref: any;
 
 	memorizeProps: Props;
-	memorizeState: any;
+	memorizedState: any;
 	alternate: FiberNode | null;
 
 	flags: Flags;
 	subtreeFlags: Flags;
 	updateQueue: unknown;
+	deletions: FiberNode[] | null;
 	constructor(tag: WorkTag, pendingProps: Props, key: Key) {
 		this.tag = tag;
 		this.key = key;
@@ -43,11 +44,12 @@ export class FiberNode {
 		this.updateQueue = null;
 		this.memorizeProps = null;
 		this.alternate = null;
-		this.memorizeState = null;
+		this.memorizedState = null;
 
 		//副作用
 		this.flags = NoFlags;
 		this.subtreeFlags = NoFlags;
+		this.deletions = null;
 	}
 }
 
@@ -68,6 +70,10 @@ export class FiberRootNode {
 	}
 }
 
+/**创建当前调度的fiber节点  即work in progress fiber
+ * 1,在首次渲染时候
+ * 2,在update的时候 复用之前fiber进行创建
+ */
 export const createWorkInProgress = (
 	current: FiberNode,
 	pendingProps: Props
@@ -84,12 +90,14 @@ export const createWorkInProgress = (
 	} else {
 		wip.pendingProps = pendingProps;
 		wip.flags = NoFlags;
+		wip.subtreeFlags = NoFlags;
+		wip.deletions = null;
 	}
 	wip.type = current.type;
 	wip.updateQueue = current.updateQueue;
 	wip.child = current.child;
 	wip.memorizeProps = current.memorizeProps;
-	wip.memorizeState = current.memorizeState;
+	wip.memorizedState = current.memorizedState;
 	return wip;
 };
 
@@ -99,7 +107,7 @@ export function createFiberFromElement(element: ReactElementType) {
 	let fiberTag: WorkTag = FunctionComponent;
 	if (typeof type === 'string') {
 		fiberTag = HostComponent;
-	} else if (typeof type !== 'function' && ___DEV___) {
+	} else if (typeof type !== 'function' && __DEV__) {
 		console.warn('未定义的type类型', element);
 	}
 	const fiber = new FiberNode(fiberTag, props, key);

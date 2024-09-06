@@ -26,7 +26,7 @@ export default defineConfig({
 
 	// // 配置环境变量，解决__DEV__ is not defined
 	define: {
-		___DEV___: true, // 设置为false跳过 if(__dev__)的开发逻辑 这样会报错 需要修改jsx_dev的引入
+		__DEV__: true, // 设置为false跳过 if(__dev__)的开发逻辑 这样会报错 需要修改jsx_dev的引入
 		__EXPERIMENTAL__: true,
 		__PROFILE__: true
 	}

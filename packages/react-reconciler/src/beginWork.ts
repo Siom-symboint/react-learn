@@ -24,7 +24,7 @@ export const beginWork = (wip: FiberNode) => {
 		case HostText:
 			return null;
 		default:
-			if (___DEV___) {
+			if (__DEV__) {
 				console.warn('beginwork 为实现的类型');
 			}
 			return null;
@@ -32,15 +32,15 @@ export const beginWork = (wip: FiberNode) => {
 };
 
 function updateHostRoot(wip: FiberNode) {
-	const baseState = wip.memorizeState;
+	const baseState = wip.memorizedState;
 	const updateQueue = wip.updateQueue as UpdateQueue<Element>;
 	const pending = updateQueue.shared.pending;
 	updateQueue.shared.pending = null;
 
 	const { memoizedState } = processUpdateQueue(baseState, pending);
-	wip.memorizeState = memoizedState;
+	wip.memorizedState = memoizedState;
 
-	const nextChildren = wip.memorizeState;
+	const nextChildren = wip.memorizedState;
 
 	reconcileChildren(wip, nextChildren);
 
