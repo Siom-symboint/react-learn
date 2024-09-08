@@ -43,6 +43,8 @@ export function renderWithHooks(wip: FiberNode) {
 	const children = Component(props);
 	//currentlyRendingFiber重置
 	currentlyRendingFiber = null;
+	WorkinProgressHook = null;
+	currentHook = null;
 	return children;
 }
 

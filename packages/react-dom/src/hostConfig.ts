@@ -1,15 +1,18 @@
 import { FiberNode } from 'react-reconciler/src/fiber';
 import { HostText } from 'react-reconciler/src/workTag';
+import { DomElement, updateFiberProps } from './SyntheticEvent';
+import { Props } from 'shared/ReactTypes';
 
 export type Container = Element;
 export type Instance = Element;
 export type TextInstance = Text;
 
-export const createInstance = (type: string, props: any): Instance => {
+export const createInstance = (type: string, props: Props): Instance => {
 	// TODO  props
-	console.log(props);
-	const element = document.createElement(type);
-	return element;
+	const element = document.createElement(type) as unknown;
+	updateFiberProps(element as DomElement, props);
+
+	return element as DomElement;
 };
 
 export const appendInitialChild = (
@@ -28,6 +31,14 @@ export const appendChildToContainer = (
 	child: Instance
 ) => {
 	parent.appendChild(child);
+};
+
+export const insertChildToContainer = (
+	container: Instance | Container,
+	before: Instance,
+	child: Instance
+) => {
+	container.insertBefore(child, before);
 };
 
 export function commitUpdate(fiber: FiberNode) {

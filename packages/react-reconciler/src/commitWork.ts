@@ -2,6 +2,8 @@ import {
 	appendChildToContainer,
 	commitUpdate,
 	Container,
+	insertChildToContainer,
+	Instance,
 	removeChild
 } from 'hostConfig';
 import { FiberNode } from './fiber';
@@ -74,28 +76,96 @@ const commitPlacement = (finishedWork: FiberNode) => {
 	if (__DEV__) {
 		console.warn('执行placement 操作', finishedWork);
 	}
+
 	const hostparent = getHostParent(finishedWork);
+
+	//host sibling
+	const sibling = getHostSibling(finishedWork);
 	if (hostparent) {
-		appendPlacementNodeIntoContainer(finishedWork, hostparent);
+		InsertOrAppendPlacementNodeIntoContainer(finishedWork, hostparent, sibling);
 	}
 };
 
+/**
+ * 两种情况不是直接的兄弟节点
+ * 1，<A/></B> 需要找的是 兄弟fiber的子fiber的sibling
+ * 2，<App/><div> A 没有兄弟节点, 则向上找APP的兄弟节点
+ * 	function App(){
+ * 		return <A/>
+ * 	}
+ */
+function getHostSibling(fiber: FiberNode) {
+	let node: FiberNode = fiber;
+
+	findSibling: while (true) {
+		// 针对第二种情况
+		while (node.sibling === null) {
+			const parent = node.return;
+			if (
+				parent === null ||
+				parent.tag === HostComponent ||
+				parent.tag === HostRoot
+			) {
+				return null;
+			}
+
+			node = parent;
+		}
+		node.sibling.return = node.return;
+		node = node.sibling;
+		// 遍历兄弟节点
+		while (node.tag !== HostRoot && node.tag !== HostComponent) {
+			//向下遍历
+			if ((node.flags & Placement) !== NoFlags) {
+				// 不能插入自己要被Placement的节点 不稳定
+				continue;
+			}
+			if (node.child === null) {
+				continue findSibling;
+			} else {
+				node.child.return = node;
+				node = node.child;
+			}
+
+			if ((node.flags & Placement) === NoFlags) {
+				return node.stateNode;
+			}
+		}
+	}
+}
+
+function recordHostChildrenToDelete(
+	childrenToDelete: FiberNode[],
+	unmountFiber: FiberNode
+) {
+	/// 找第一个root host节点
+	const lastOne = childrenToDelete[childrenToDelete.length - 1];
+
+	if (!lastOne) {
+		childrenToDelete.push(unmountFiber);
+	} else {
+		let node = lastOne.sibling;
+		while (node !== null) {
+			if (unmountFiber === node) {
+				childrenToDelete.push(unmountFiber);
+			}
+			node = node.sibling;
+		}
+	}
+}
+
 const commitDeletion = (childDeletion: FiberNode) => {
 	/**所需卸载的fiber的挂载节点 */
-	let rootHostNode: FiberNode | null = null;
+	const rootChildrenToDelete: FiberNode[] = [];
 
 	commitNestedComponent(childDeletion, (unmountFiber) => {
 		switch (unmountFiber.tag) {
 			case HostComponent:
-				if (rootHostNode === null) {
-					rootHostNode = unmountFiber;
-				}
+				recordHostChildrenToDelete(rootChildrenToDelete, unmountFiber);
 
 				return;
 			case HostText:
-				if (rootHostNode === null) {
-					rootHostNode = unmountFiber;
-				}
+				recordHostChildrenToDelete(rootChildrenToDelete, unmountFiber);
 
 				return;
 			case FunctionComponent:
@@ -109,10 +179,12 @@ const commitDeletion = (childDeletion: FiberNode) => {
 		}
 	});
 
-	if (rootHostNode !== null) {
+	if (rootChildrenToDelete.length > 0) {
 		const hostParent = getHostParent(childDeletion);
 		if (hostParent !== null) {
-			removeChild((rootHostNode as FiberNode).stateNode, hostParent);
+			rootChildrenToDelete.forEach((child) => {
+				removeChild(child.stateNode, hostParent);
+			});
 		}
 	}
 	childDeletion.return = null;
@@ -172,14 +244,19 @@ function getHostParent(fiber: FiberNode): Container | null {
 	return null;
 }
 
-function appendPlacementNodeIntoContainer(
+function InsertOrAppendPlacementNodeIntoContainer(
 	finishedWork: FiberNode,
-	hostParent: Container
+	hostParent: Container,
+	before?: Element
 ) {
 	// fiber host
 
 	if (finishedWork.tag === HostComponent || finishedWork.tag === HostText) {
-		appendChildToContainer(hostParent, finishedWork.stateNode);
+		if (before) {
+			insertChildToContainer(hostParent, before, finishedWork.stateNode);
+		} else {
+			appendChildToContainer(hostParent, finishedWork.stateNode);
+		}
 		return;
 	}
 
@@ -187,9 +264,9 @@ function appendPlacementNodeIntoContainer(
 
 	if (child !== null) {
 		let sibling = child.sibling;
-		appendPlacementNodeIntoContainer(child, hostParent);
+		InsertOrAppendPlacementNodeIntoContainer(child, hostParent);
 		while (sibling !== null) {
-			appendPlacementNodeIntoContainer(sibling.stateNode, hostParent);
+			InsertOrAppendPlacementNodeIntoContainer(sibling, hostParent);
 
 			sibling = sibling.sibling;
 		}

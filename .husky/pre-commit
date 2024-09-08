@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
+. "$(dirname "$0")/_/h"
 pnpm lint
 npx --no-install commitlint --edit
 prettier $(git diff --cached --name-only --diff-filter=ACMR | sed 's| |\\ |g') --write --ignore-unknown
 git update-index --again
-. "$(dirname "$0")/_/h"
+
