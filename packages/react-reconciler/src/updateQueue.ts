@@ -69,12 +69,12 @@ export const processUpdateQueue = <State>(
 
 			if (updateLane === renderLane) {
 				if (action instanceof Function) {
-					console.log(
-						action(baseState),
-						action,
-						baseState,
-						' action(baseState)'
-					);
+					// console.log(
+					// 	action(baseState),
+					// 	action,
+					// 	baseState,
+					// 	' action(baseState)'
+					// );
 
 					baseState = action(baseState);
 				} else {
