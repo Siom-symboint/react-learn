@@ -2,6 +2,7 @@ import { Key, Props, ReactElementType } from 'shared/ReactTypes';
 import { Fragment, FunctionComponent, HostComponent, WorkTag } from './workTag';
 import { Flags, NoFlags } from './fiberFlags';
 import { Container } from 'hostConfig';
+import { Lane, Lanes, NoLane, NoLanes } from './fiberLanes';
 
 export class FiberNode {
 	tag: WorkTag;
@@ -25,6 +26,7 @@ export class FiberNode {
 	subtreeFlags: Flags;
 	updateQueue: unknown;
 	deletions: FiberNode[] | null;
+
 	constructor(tag: WorkTag, pendingProps: Props, key: Key = null) {
 		this.tag = tag;
 		this.key = key || null;
@@ -58,6 +60,9 @@ export class FiberRootNode {
 	current: FiberNode;
 	finishedWork: FiberNode | null;
 
+	pendingLanes: Lanes;
+	finishedLane: Lane;
+
 	constructor(container: Container, hostRootFiber: FiberNode) {
 		this.container = container;
 		this.current = hostRootFiber;
@@ -67,6 +72,8 @@ export class FiberRootNode {
 		 */
 		hostRootFiber.stateNode = this;
 		this.finishedWork = null;
+		this.pendingLanes = NoLanes;
+		this.finishedLane = NoLane;
 	}
 }
 
@@ -117,6 +124,5 @@ export function createFiberFromElement(element: ReactElementType) {
 
 export function createFiberFromFragment(element: any[], key: Key) {
 	const fiber = new FiberNode(Fragment, element, key);
-	console.log('fragment===================================>', fiber);
 	return fiber;
 }

@@ -65,3 +65,11 @@ export function removeChild(
 ) {
 	container.removeChild(child);
 }
+
+export const scheduleMicroTask =
+	typeof queueMicrotask === 'function'
+		? queueMicrotask
+		: typeof Promise === 'function'
+			? (callback: (...arg: any) => void) =>
+					Promise.resolve(null).then(callback)
+			: setTimeout;

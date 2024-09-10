@@ -210,7 +210,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		index: number,
 		element: any
 	): FiberNode | null {
-		const keyToUse = element.key !== null ? element.key : index;
+		const keyToUse = element.key === null ? index : element.key;
 		const before = existingChildren.get(keyToUse);
 		// HostText
 		if (typeof element === 'string' || typeof element === 'number') {
@@ -222,6 +222,15 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 			}
 
 			return new FiberNode(HostText, { content: element + '' }, keyToUse);
+		}
+		if (Array.isArray(element)) {
+			return updateFragment(
+				returnFiber,
+				before,
+				element,
+				keyToUse,
+				existingChildren
+			);
 		}
 
 		//ReactElement
@@ -249,16 +258,6 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 				default:
 					break;
 			}
-		}
-
-		if (Array.isArray(element)) {
-			return updateFragment(
-				returnFiber,
-				before,
-				element,
-				keyToUse,
-				existingChildren
-			);
 		}
 
 		return null;
@@ -313,6 +312,56 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 
 export const reconcileChildFibers = ChildReconciler(true);
 export const mountChildFibers = ChildReconciler(false);
+
+function updateSlot(
+	returnFiber: FiberNode,
+	oldFiber: FiberNode,
+	newChild: any,
+	existingChildren: ExistingChildren
+) {
+	const key = oldFiber !== null ? oldFiber.key : null;
+	if (
+		(typeof newChild === 'string' && newChild !== '') ||
+		typeof newChild === 'number'
+	) {
+		// Text nodes don't have keys. If the previous node is implicitly keyed
+		// we can continue to replace it without aborting even if it is not a text
+		// node.
+		if (key !== null) {
+			return null;
+		}
+
+		return useFiber(oldFiber, { content: newChild + '' });
+	}
+
+	if (typeof newChild === 'object' && newChild !== null) {
+		switch (newChild.$$typeof) {
+			case REACT_ELEMENT_TYPE: {
+				if (newChild.key === key) {
+					return useFiber(oldFiber, newChild);
+				} else {
+					return null;
+				}
+			}
+		}
+
+		if (Array.isArray(newChild)) {
+			if (key !== null) {
+				return null;
+			}
+
+			return updateFragment(
+				returnFiber,
+				oldFiber,
+				newChild,
+				key,
+				existingChildren
+			);
+		}
+	}
+
+	return null;
+}
 
 function useFiber(fiber: FiberNode, pendingProps: Props): FiberNode {
 	const clone = createWorkInProgress(fiber, pendingProps);

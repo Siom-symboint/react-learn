@@ -5,20 +5,22 @@ import React from 'react';
 // import './index.css';
 
 function Children() {
-	const [num, setNum] = useState(0);
-	const arr =
-		num % 2 === 0
-			? [<li key="1">1</li>, <li key="2">2</li>, <li key="3">3</li>]
-			: [<li key="2">2</li>, <li key="3">3</li>, <li key="1">1</li>];
+	const [num, setNum] = useState(3);
+	// const arr =
+	// 	num % 2 === 0
+	// 		? [<li key="1">1</li>, <li key="2">2</li>, <li key="3">3</li>]
+	// 		: [<li key="2">2</li>, <li key="3">3</li>, <li key="1">1</li>];
 	return (
 		<div
 			onClick={() => {
-				setNum(num + 1);
+				setNum((num) => num + 1);
+				setNum((num) => num + 1);
+				setNum((num) => num + 1);
 			}}
 		>
 			<li key="4">4</li>
-			<li key="5">5</li>
-			{arr}
+			<li key="6">6</li>
+			{num}
 		</div>
 	);
 }
