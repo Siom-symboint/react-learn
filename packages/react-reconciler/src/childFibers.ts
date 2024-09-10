@@ -62,6 +62,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 				return existing;
 			}
 			deleteChild(returnFiber, currentFiber);
+			currentFiber = currentFiber.sibling;
 		}
 		const fiber = new FiberNode(HostText, { content }, null);
 
