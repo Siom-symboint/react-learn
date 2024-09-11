@@ -127,13 +127,19 @@ function flushPassiveEffects(pendingPassiveEffects: PendingPassiveEffects) {
 		commitHookEffectListDestory(Passive | HookHasEffect, effect);
 	});
 
-	// 触发更新destory
+	/**
+	 * 触发更新create ！！！ 这里会执行effect.destory = create() 即这里才会收集destory,
+	 * 供commitHookEffectListDestory 执行
+	 * useEffect在udpate阶段执行的updateEffect,创建Effect是destory是从同胞节点处拿的
+	 * 即commitHookEffectListDestory执行的始终是上一次的destory
+	 */
 
 	pendingPassiveEffects.update.forEach((effect) => {
 		commitHookEffectListCreate(Passive | HookHasEffect, effect);
 	});
 	pendingPassiveEffects.update = [];
 
+	// effect可能会触发再次更新 重新调用
 	flushSyncCallbacks();
 }
 
@@ -212,6 +218,7 @@ function commitRoot(root: FiberRootNode) {
 
 	const rootHasEffect = (finishedWork.flags & MutationMask) != NoFlags;
 
+	// “提交”副作用  到root节点上
 	if (subtreeFlagsEffect || rootHasEffect) {
 		commitMutationEffect(finishedWork, root);
 		root.current = finishedWork;

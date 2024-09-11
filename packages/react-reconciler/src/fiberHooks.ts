@@ -89,6 +89,7 @@ function mountEffect(create: EffectCallback | void, deps: EffectDeps) {
 	hook.memorizedState = pushEffect(
 		Passive | HookHasEffect,
 		create,
+		// mount阶段没有distory
 		undefined,
 		nextDeps
 	);
@@ -100,6 +101,7 @@ function updateEffect(create: EffectCallback | void, deps: EffectDeps) {
 	const nextDeps = deps === undefined ? null : deps;
 	let destory: EffectCallback | void;
 	if (currentHook !== null) {
+		// update阶段 通过拿同胞节点的effect去那拿上一次更新的preEffect去拿destory
 		const prevEffect = currentHook.memorizedState as Effect;
 		destory = prevEffect.destory;
 
@@ -114,6 +116,7 @@ function updateEffect(create: EffectCallback | void, deps: EffectDeps) {
 
 			// 不想等
 			currentlyRendingFiber!.flags |= PassiveEffect;
+			//这里保存的destory  是上一次更新的destory
 			hook.memorizedState = pushEffect(
 				Passive | HookHasEffect,
 				create,

@@ -3,7 +3,7 @@ import { Fragment, FunctionComponent, HostComponent, WorkTag } from './workTag';
 import { Flags, NoFlags } from './fiberFlags';
 import { Container } from 'hostConfig';
 import { Lane, Lanes, NoLane, NoLanes } from './fiberLanes';
-import { Effect } from './fiberHooks';
+import { Effect, FCUpdateQUeue } from './fiberHooks';
 
 export class FiberNode {
 	tag: WorkTag;

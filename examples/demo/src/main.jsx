@@ -6,9 +6,15 @@ import React, { useEffect } from 'react';
 
 function Children() {
 	useEffect(() => {
-		console.log('child mount ');
+		console.log('child mount1 ');
 		return () => {
-			console.log('child unmount');
+			console.log('child unmount1');
+		};
+	}, []);
+	useEffect(() => {
+		console.log('child mount 2 ');
+		return () => {
+			console.log('child unmount 2');
 		};
 	}, []);
 	// const arr =
@@ -23,10 +29,10 @@ function App() {
 	const [str, setStr] = useState('str');
 
 	useEffect(() => {
-		console.log('App mount ');
+		console.log('App mount 1');
 		// setNum((num) => num + 1);
 		return () => {
-			console.log('child unmount');
+			console.log('App unmount 1');
 		};
 	}, []);
 

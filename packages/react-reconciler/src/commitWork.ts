@@ -40,6 +40,7 @@ export const commitMutationEffect = (
 			(nextEffect.subtreeFlags & (MutationMask | PassiveMask)) !== NoFlags &&
 			child !== null
 		) {
+			// 向下遍历 遍历到最底层 在交给sibling 实际上就是一次深度优先遍历
 			nextEffect = child;
 		} else {
 			// 向上遍历
@@ -57,6 +58,16 @@ export const commitMutationEffect = (
 	}
 };
 
+/**
+ *
+ * @param finishedWork  当前的fiber节点
+ * @param rootnode   root节点
+ * "提交副作用" 负作用分两种
+ * 1,diff带来的dom的操作 place deletion
+ * 2,useEffect带来的副作用
+ * commitMutation阶段针对第一种副作用  执行的是workInprogress tree的节点操作
+ * 针对2的副作用  执行的是收集effect到rootnode的pendingPassiveEffects中去
+ */
 const commitMutationEffectsOnFiber = (
 	finishedWork: FiberNode,
 	rootnode: FiberRootNode
@@ -84,12 +95,12 @@ const commitMutationEffectsOnFiber = (
 	}
 
 	if ((flags & PassiveEffect) !== NoFlags) {
-		// 收集回调
+		// 收集回调,useEffect的create
 		commitPassiveEffect(finishedWork, rootnode, 'update');
 		finishedWork.flags &= ~PassiveEffect;
 	}
 };
-
+// 对于FunctionCompoent来讲，fiber.updateQueue就是一条effectList
 function commitPassiveEffect(
 	fiber: FiberNode,
 	root: FiberRootNode,
@@ -115,9 +126,11 @@ function commitPassiveEffect(
 	}
 }
 
+// 遍历环状链表
 export function commitHookEffectList(
 	flags: Flags,
 	lastEffect: Effect,
+	// create 或destory
 	callback: (effect: Effect) => void
 ) {
 	// 第一个effect  这里effect为一个环状链表 实现过多次了。
@@ -244,6 +257,7 @@ function recordHostChildrenToDelete(
 	}
 }
 
+// 提交删除工作
 const commitDeletion = (childDeletion: FiberNode, root: FiberRootNode) => {
 	/**所需卸载的fiber的挂载节点 */
 	const rootChildrenToDelete: FiberNode[] = [];
@@ -259,6 +273,7 @@ const commitDeletion = (childDeletion: FiberNode, root: FiberRootNode) => {
 
 				return;
 			case FunctionComponent:
+				// 这里是期望收集destory
 				commitPassiveEffect(unmountFiber, root, 'unmount');
 				return;
 			default:
