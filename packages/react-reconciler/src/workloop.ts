@@ -1,3 +1,19 @@
+/**
+ * host环境下的createRoot()方法 创建一个带render()的对象， 以react-dom为例:
+ * ReactDom/CreateRoot(<root>).render()=>updateContainer(创建updateQueue=>element)
+ * =>scheduleUpdateOnFiber(开始调度更新  fiber为root节点时 调度更新入口)
+ * =>ensureRootIsScheduled(开始调度 区分宏任务调度还是微任务调度)
+ * =>scheduleCallback(
+			schedulerPriority,
+			performConcurrentWorkOnRoot.bind(null, root)
+	)开始宏任务调度===同步模式  这里是一个大WorkLoop,代码上的递归入口是ensureRootIsScheduled,实现的同步模式
+ * 所以起码会执行三次1,schedule调度一个performConcurrentWorkOnRoot,记录existingCallback和updateLane
+				  2,performConcurrentWorkOnRoot会再调用ensureRootIsScheduled，
+				  3,performConcurrentWorkOnRoot作为schedule的callback执行到updateLane为noLane 递归出口
+ * =>renderRoot()
+ * =>workLoopSyncConcurrent=>performUnitOfWork=>beginWork=>CompleteWork=>commitWork 这里是一个小的workLoop 
+ * 时间分片去执行对fiber的reconciler过程
+ */
 import { scheduleMicroTask } from 'hostConfig';
 import { beginWork } from './beginWork';
 import {
@@ -55,9 +71,15 @@ export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
 	ensureRootIsScheduled(root);
 }
 
+// 开始调度 区分宏任务调度还是微任务调度
 function ensureRootIsScheduled(root: FiberRootNode) {
 	const updateLane = getHighestPriorityLane(root.pendingLanes);
 	const existingCallback = root.callBackNode;
+
+	console.log('==========ensureRootIsScheduled执行,');
+	console.log('==========existingCallback,', existingCallback);
+	console.log('==========updateLane', updateLane);
+
 	if (updateLane === NoLane) {
 		if (existingCallback !== null) {
 			unstable_cancelCallback(existingCallback);
@@ -142,9 +164,11 @@ export function performConcurrentWorkOnRoot(
 
 	const needSync = lane === SyncLane || didTimeout;
 
+	// 从renderRoot开始执行reconciler的真正阶段===>这里才开始diff了
 	const existStatus = renderRoot(root, lane, !needSync);
 
 	ensureRootIsScheduled(root);
+	// 中断
 	if (existStatus === RootInComplete) {
 		if (root.callBackNode !== currentCallbackNode) {
 			return null;
@@ -272,6 +296,7 @@ function workLoopSyncConcurrent() {
 	}
 }
 
+// 同步调度入口
 function performUnitOfWork(fiber: FiberNode) {
 	const next = beginWork(fiber, workInProgressLane);
 	fiber.memorizeProps = fiber.pendingProps;
