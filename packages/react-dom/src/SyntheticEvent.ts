@@ -1,4 +1,10 @@
 import { Container } from 'hostConfig';
+import {
+	unstable_IdlePriority,
+	unstable_ImmediatePriority,
+	unstable_runWithPriority,
+	unstable_UserBlockingPriority
+} from 'scheduler';
 import { Props } from 'shared/ReactTypes';
 
 type EventCallback = (e: Event) => void;
@@ -81,7 +87,10 @@ export function dispatchEvent(
 function triggerEventFlow(paths: EventCallback[], se: SyntheticEvent) {
 	for (let index = 0; index < paths.length; index++) {
 		const callback = paths[index];
-		callback.call(null, se);
+		unstable_runWithPriority(eventTypeToSchedulerPriority(se.type), () => {
+			callback.call(null, se);
+		});
+
 		if (se.__stopPropagation) {
 			break;
 		}
@@ -125,4 +134,18 @@ function collectPaths(
 	}
 
 	return paths;
+}
+
+function eventTypeToSchedulerPriority(eventType: string) {
+	switch (eventType) {
+		case 'click':
+		case 'keydown':
+		case 'keup':
+			return unstable_ImmediatePriority;
+		case 'scroll':
+			return unstable_UserBlockingPriority;
+
+		default:
+			return unstable_IdlePriority;
+	}
 }
