@@ -69,6 +69,7 @@ function prepareFreshStack(root: FiberRootNode, lane: Lane) {
 export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
 	const root = markUpdateFromFiberToRoot(fiber);
 	markRootUpdated(root, lane);
+	console.log('scheduleUpdateOnFiber 执行');
 	ensureRootIsScheduled(root);
 }
 
@@ -76,7 +77,7 @@ export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
 function ensureRootIsScheduled(root: FiberRootNode) {
 	const updateLane = getHighestPriorityLane(root.pendingLanes);
 	const existingCallback = root.callBackNode;
-
+	console.log('ensureRootIsScheduled 执行');
 	if (updateLane === NoLane) {
 		if (existingCallback !== null) {
 			unstable_cancelCallback(existingCallback);
@@ -89,6 +90,7 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 	const prePriority = root.callbackPriority;
 
 	if (curPriority === prePriority) {
+		// 同优先级 两种情况
 		return;
 	}
 
@@ -166,6 +168,7 @@ export function performConcurrentWorkOnRoot(
 	//workLoopSyncConcurrent被时间切片中断或者执行完成 才会得到返回
 	const existStatus = renderRoot(root, lane, !needSync);
 
+	// 这里要执行是为了看root.callBackNode(preCallbackNode) 和currentCallbackNode 是否一致来看是否是同一个Task
 	ensureRootIsScheduled(root);
 	// 中断
 	if (existStatus === RootInComplete) {
@@ -238,12 +241,15 @@ function renderRoot(root: FiberRootNode, lane: Lane, shouldTimeSlice: boolean) {
 	} while (true);
 
 	if (shouldTimeSlice && workInProgress !== null) {
+		console.warn('还没执行完');
 		return RootInComplete;
 	}
 
 	if (!shouldTimeSlice && workInProgress !== null && __DEV__) {
 		console.error('不应该存在render解释workInprogress不为null的请跨国');
 	}
+	console.log('执行完了');
+
 	return rootCompleted;
 }
 

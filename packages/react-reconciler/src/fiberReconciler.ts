@@ -7,7 +7,7 @@ import {
 	enqueueUpdate,
 	UpdateQueue
 } from './updateQueue';
-import { Action, ReactElementType } from 'shared/ReactTypes';
+import { ReactElementType } from 'shared/ReactTypes';
 import { scheduleUpdateOnFiber } from './workloop';
 import { requestUpdateLane } from './fiberLanes';
 
