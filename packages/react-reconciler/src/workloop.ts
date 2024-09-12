@@ -45,7 +45,8 @@ import {
 	unstable_scheduleCallback as scheduleCallback,
 	unstable_NormalPriority as NormalPriority,
 	unstable_shouldYield,
-	unstable_cancelCallback
+	unstable_cancelCallback,
+	unstable_ImmediatePriority
 } from 'scheduler';
 import { HookHasEffect, Passive } from './hookEffectTags';
 let workInProgress: FiberNode | null = null;
@@ -76,9 +77,9 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 	const updateLane = getHighestPriorityLane(root.pendingLanes);
 	const existingCallback = root.callBackNode;
 
-	console.log('==========ensureRootIsScheduled执行,');
-	console.log('==========existingCallback,', existingCallback);
-	console.log('==========updateLane', updateLane);
+	// console.log('==========ensureRootIsScheduled执行,');
+	// console.log('==========existingCallback,', existingCallback);
+	// console.log('==========updateLane', updateLane);
 
 	if (updateLane === NoLane) {
 		if (existingCallback !== null) {
@@ -113,8 +114,8 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 		// 宏任务调度
 		const schedulerPriority = lanesToSchedulerPriority(updateLane);
 		newCallbackNode = scheduleCallback(
-			schedulerPriority,
-			performConcurrentWorkOnRoot.bind(null, root)
+			unstable_ImmediatePriority,
+			performSyncWorkOnRoot.bind(null, root)
 		);
 	}
 
@@ -165,6 +166,7 @@ export function performConcurrentWorkOnRoot(
 	const needSync = lane === SyncLane || didTimeout;
 
 	// 从renderRoot开始执行reconciler的真正阶段===>这里才开始diff了
+	//workLoopSyncConcurrent被时间切片中断或者执行完成 才会得到返回
 	const existStatus = renderRoot(root, lane, !needSync);
 
 	ensureRootIsScheduled(root);
