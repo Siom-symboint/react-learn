@@ -352,7 +352,7 @@ function getHostParent(fiber: FiberNode): Container | null {
 function InsertOrAppendPlacementNodeIntoContainer(
 	finishedWork: FiberNode,
 	hostParent: Container,
-	before?: Element
+	before?: Instance
 ) {
 	// fiber host
 

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import ReactDom from 'react-dom';
+// import ReactDom from 'react-noop-renderer';
+
 import React, { useEffect } from 'react';
 
 // import './index.css';
@@ -49,6 +51,7 @@ function App() {
 				setStr('2222');
 			}}
 		>
+			333
 			{num}
 			{str === '2222' ? 'noop' : <Children />}
 		</div>
@@ -56,4 +59,9 @@ function App() {
 }
 
 // debugger;
-ReactDom.createRoot(document.querySelector('#root')).render(<App />);
+const root = ReactDom.createRoot(document.querySelector('#root'));
+// const root = ReactDom.createRoot();
+
+root.render(<App />);
+
+window.root = root;
