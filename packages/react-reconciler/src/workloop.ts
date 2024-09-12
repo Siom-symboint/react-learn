@@ -48,6 +48,7 @@ function prepareFreshStack(root: FiberRootNode, lane: Lane) {
 	workInProgressLane = lane;
 }
 
+// 开始调度更新  fiber为root节点时 调度更新入口
 export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
 	const root = markUpdateFromFiberToRoot(fiber);
 	markRootUpdated(root, lane);
