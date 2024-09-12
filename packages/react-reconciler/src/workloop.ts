@@ -7,9 +7,9 @@
 			schedulerPriority,
 			performConcurrentWorkOnRoot.bind(null, root)
 	)开始宏任务调度===同步模式  这里是一个大WorkLoop,代码上的递归入口是ensureRootIsScheduled,实现的同步模式
- * 所以起码会执行三次1,schedule调度一个performConcurrentWorkOnRoot,记录existingCallback和updateLane
-				  2,performConcurrentWorkOnRoot会再调用ensureRootIsScheduled，
-				  3,performConcurrentWorkOnRoot作为schedule的callback执行到updateLane为noLane 递归出口
+ * 所以起码会执行3次1,schedule调度一个performConcurrentWorkOnRoot,记录existingCallback和updateLane
+				  2,performConcurrentWorkOnRoot会再调用ensureRootIsScheduled，curPriority === prePriority,递归出口
+				  3,commitRoot后执行effect updateLane为noLane 递归出口
  * =>renderRoot()
  * =>workLoopSyncConcurrent=>performUnitOfWork=>beginWork=>CompleteWork=>commitWork 这里是一个小的workLoop 
  * 时间分片去执行对fiber的reconciler过程
@@ -77,10 +77,6 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 	const updateLane = getHighestPriorityLane(root.pendingLanes);
 	const existingCallback = root.callBackNode;
 
-	// console.log('==========ensureRootIsScheduled执行,');
-	// console.log('==========existingCallback,', existingCallback);
-	// console.log('==========updateLane', updateLane);
-
 	if (updateLane === NoLane) {
 		if (existingCallback !== null) {
 			unstable_cancelCallback(existingCallback);
@@ -93,7 +89,7 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 	const prePriority = root.callbackPriority;
 
 	if (curPriority === prePriority) {
-		return null;
+		return;
 	}
 
 	if (existingCallback !== null) {
@@ -101,6 +97,7 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 	}
 	let newCallbackNode = null;
 	// performSyncWorkOnRoot(root, updateLane);
+
 	if (updateLane === SyncLane) {
 		// 同步优先级 微任务调度
 		if (__DEV__) {
@@ -114,8 +111,8 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 		// 宏任务调度
 		const schedulerPriority = lanesToSchedulerPriority(updateLane);
 		newCallbackNode = scheduleCallback(
-			unstable_ImmediatePriority,
-			performSyncWorkOnRoot.bind(null, root)
+			schedulerPriority,
+			performConcurrentWorkOnRoot.bind(null, root)
 		);
 	}
 
