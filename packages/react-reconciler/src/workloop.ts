@@ -37,6 +37,7 @@ function prepareFreshStack(root: FiberRootNode, lane: Lane) {
 	workInProgressLane = lane;
 }
 
+// 开始调度更新  fiber为root节点时 调度更新入口
 export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
 	const root = markUpdateFromFiberToRoot(fiber);
 	markRootUpdated(root, lane);
@@ -54,7 +55,7 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 		if (__DEV__) {
 			console.warn('微任务中调度,优先级：', updateLane);
 		}
-		// 收集所有更新任务等待执行
+		// 收集所有更新任务等待执行,微任务异步执行
 		scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root, updateLane));
 		// 异步执行 workLoop
 		scheduleMicroTask(flushSyncCallbacks);
