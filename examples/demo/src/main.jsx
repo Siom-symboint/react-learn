@@ -6,54 +6,40 @@ import React, { useEffect } from 'react';
 
 // import './index.css';
 
-function Children() {
-	useEffect(() => {
-		console.log('child mount1 ');
-		return () => {
-			console.log('child unmount1');
-		};
-	}, []);
-	useEffect(() => {
-		console.log('child mount 2 ');
-		return () => {
-			console.log('child unmount 2');
-		};
-	}, []);
+function Children({ children }) {
+	// useEffect(() => {
+	// 	console.log('child mount1 ');
+	// 	return () => {
+	// 		console.log('child unmount1');
+	// 	};
+	// }, []);
+	// useEffect(() => {
+	// 	console.log('child mount 2 ');
+	// 	return () => {
+	// 		console.log('child unmount 2');
+	// 	};
+	// }, []);
 	// const arr =
 	// 	num % 2 === 0
 	// 		? [<li key="1">1</li>, <li key="2">2</li>, <li key="3">3</li>]
 	// 		: [<li key="2">2</li>, <li key="3">3</li>, <li key="1">1</li>];
-	return <div>children</div>;
+	const now = performance.now();
+	while (performance.now() - now < 5) {}
+	return <div>{children}</div>;
 }
 
 function App() {
-	const [num, setNum] = useState(0);
-	const [str, setStr] = useState('str');
+	const [num, setNum] = useState(100);
 
-	useEffect(() => {
-		console.log('App mount 1');
-		// setNum((num) => num + 1);
-		return () => {
-			console.log('App unmount 1');
-		};
-	}, []);
-
-	useEffect(() => {
-		console.log('num change create', num);
-		return () => {
-			console.log('num change destory', num);
-		};
-	}, [num]);
 	return (
 		<div
 			onClick={() => {
-				setNum((num) => num + 1);
-				setStr('2222');
+				setNum(50);
 			}}
 		>
-			333
-			{num}
-			{str === '2222' ? 'noop' : <Children />}
+			{new Array(num).fill(0).map((item, index) => (
+				<Children key={index}>{index}</Children>
+			))}
 		</div>
 	);
 }
