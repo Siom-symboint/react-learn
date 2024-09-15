@@ -16,27 +16,30 @@ function App() {
 			setTab(nextTab);
 		});
 	}
-
-	return (
-		<div>
+	const d = (
+		<>
 			<TabButton isActive={tab === 'about'} onClick={() => selectTab('about')}>
 				首页
 			</TabButton>
 			<TabButton isActive={tab === 'posts'} onClick={() => selectTab('posts')}>
 				博客 (render慢)
 			</TabButton>
+
 			<TabButton
 				isActive={tab === 'contact'}
 				onClick={() => selectTab('contact')}
 			>
 				联系我
 			</TabButton>
+			<text>{tab}</text>
 			<hr />
 			{tab === 'about' && <AboutTab />}
 			{tab === 'posts' && <PostsTab />}
 			{tab === 'contact' && <ContactTab />}
-		</div>
+		</>
 	);
+	console.log(d);
+	return d;
 }
 
 const root = ReactDOM.createRoot(document.querySelector('#root'));

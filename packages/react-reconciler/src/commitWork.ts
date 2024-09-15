@@ -23,7 +23,7 @@ import {
 	HostRoot,
 	HostText
 } from './workTag';
-import { Effect, FCUpdateQUeue } from './fiberHooks';
+import { Effect, FCUpdateQueue } from './fiberHooks';
 import { HookHasEffect } from './hookEffectTags';
 
 let nextEffect: FiberNode | null = null;
@@ -113,7 +113,7 @@ function commitPassiveEffect(
 		return;
 	}
 
-	const updateQueue = fiber.updateQueue as FCUpdateQUeue<any>;
+	const updateQueue = fiber.updateQueue as FCUpdateQueue<any>;
 
 	if (updateQueue !== null) {
 		if (updateQueue.lastEffect === null) {
@@ -148,18 +148,18 @@ export function commitHookEffectList(
 // 触发上次的destory
 export function commitHookEffectListDestory(flags: Flags, lastEffect: Effect) {
 	commitHookEffectList(flags, lastEffect, (effect) => {
-		const destory = effect.destory;
-		if (typeof destory === 'function') {
-			destory();
+		const destroy = effect.destroy;
+		if (typeof destroy === 'function') {
+			destroy();
 		}
 	});
 }
 // 组件卸载
 export function commitHookEffectListUnmount(flags: Flags, lastEffect: Effect) {
 	commitHookEffectList(flags, lastEffect, (effect) => {
-		const destory = effect.destory;
-		if (typeof destory === 'function') {
-			destory();
+		const destroy = effect.destroy;
+		if (typeof destroy === 'function') {
+			destroy();
 		}
 		effect.tag &= ~HookHasEffect;
 	});
@@ -169,7 +169,7 @@ export function commitHookEffectListCreate(flags: Flags, lastEffect: Effect) {
 	commitHookEffectList(flags, lastEffect, (effect) => {
 		const create = effect.create;
 		if (typeof create === 'function') {
-			effect.destory = create();
+			effect.destroy = create();
 		}
 		effect.tag &= ~HookHasEffect;
 	});
@@ -199,28 +199,28 @@ const commitPlacement = (finishedWork: FiberNode) => {
  */
 function getHostSibling(fiber: FiberNode) {
 	let node: FiberNode = fiber;
-
 	findSibling: while (true) {
-		// 针对第二种情况
 		while (node.sibling === null) {
+			// 如果当前节点没有sibling，则找他父级sibling
 			const parent = node.return;
 			if (
 				parent === null ||
 				parent.tag === HostComponent ||
 				parent.tag === HostRoot
 			) {
+				// 没找到
 				return null;
 			}
-
 			node = parent;
 		}
 		node.sibling.return = node.return;
+		// 向同级sibling寻找
 		node = node.sibling;
-		// 遍历兄弟节点
-		while (node.tag !== HostRoot && node.tag !== HostComponent) {
-			//向下遍历
+
+		while (node.tag !== HostText && node.tag !== HostComponent) {
+			// 找到一个非Host fiber，向下找，直到找到第一个Host子孙
 			if ((node.flags & Placement) !== NoFlags) {
-				// 不能插入自己要被Placement的节点 不稳定
+				// 这个fiber不稳定，不能用
 				continue findSibling;
 			}
 			if (node.child === null) {
@@ -229,10 +229,12 @@ function getHostSibling(fiber: FiberNode) {
 				node.child.return = node;
 				node = node.child;
 			}
+		}
 
-			if ((node.flags & Placement) === NoFlags) {
-				return node.stateNode;
-			}
+		// 找到最有可能的fiber
+		if ((node.flags & Placement) === NoFlags) {
+			// 这是稳定的fiber，就他了
+			return node.stateNode;
 		}
 	}
 }

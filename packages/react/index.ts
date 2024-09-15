@@ -3,6 +3,7 @@ import currentDispatcher, {
 	Dispatcher,
 	resolveDispatcher
 } from './src/currentDispatcher';
+import currentBatchConfig from './src/currentBatchconfig';
 
 export { isValidElement, Fragment } from './src/jsx';
 export const useState: Dispatcher['useState'] = (initialState: any) => {
@@ -15,8 +16,19 @@ export const useEffect: Dispatcher['useEffect'] = (create, deps) => {
 	return dispatcher.useEffect(create, deps);
 };
 
+export const useTransition: Dispatcher['useTransition'] = () => {
+	const dispatcher = resolveDispatcher();
+	return dispatcher.useTransition();
+};
+
+export const useContext: Dispatcher['useContext'] = (context) => {
+	const dispatcher = resolveDispatcher();
+	return dispatcher.useContext(context);
+};
+
 export const _SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FILE = {
-	currentDispatcher
+	currentDispatcher,
+	currentBatchConfig
 };
 
 export const version = '0.0.1';

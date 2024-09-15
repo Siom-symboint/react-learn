@@ -53,8 +53,8 @@ let workInProgress: FiberNode | null = null;
 let workInProgressLane: Lane = NoLane;
 let rootDoesHasPassiveEffects: boolean = false;
 type RootExitStatus = number;
-const RootInComplete = 1;
-const rootCompleted = 2;
+const RootInComplete: RootExitStatus = 1;
+const rootCompleted: RootExitStatus = 2;
 // 执行过程中报错
 const rootError = 3;
 
@@ -157,7 +157,6 @@ export function performConcurrentWorkOnRoot(
 	}
 	const lane = getHighestPriorityLane(root.pendingLanes);
 	if (lane === NoLane) {
-		// 非同步更新
 		return null;
 	}
 	const currentCallbackNode = root.callBackNode;
@@ -175,6 +174,12 @@ export function performConcurrentWorkOnRoot(
 		if (root.callBackNode !== currentCallbackNode) {
 			return null;
 		}
+		//ensureRootIsScheduled 会执行 root.callBackNode = newCallbackNode;
+		//如果root.callBackNode === currentCallbackNode 则说明还是同一个调度任务,则返回回调继续调度
+		// scheduler的优化路径 如果调度的回调函数的返回值是一个函数 则会继续调度这个返回的函====>针对只有一个Work的情况
+		// console.log(
+		// 	'performConcurrentWorkOnRoot.bind(null, root); in performConcurrentWorkOnRoot'
+		// );
 		return performConcurrentWorkOnRoot.bind(null, root);
 	}
 	if (existStatus === rootCompleted) {
@@ -270,7 +275,7 @@ function flushPassiveEffects(pendingPassiveEffects: PendingPassiveEffects) {
 	});
 
 	/**
-	 * 触发更新create ！！！ 这里会执行effect.destory = create() 即这里才会收集destory,
+	 * 触发更新create ！！！ 这里会执行effect.destroy = create() 即这里才会收集destory,
 	 * 供commitHookEffectListDestory 执行
 	 * useEffect在udpate阶段执行的updateEffect,创建Effect是destory是从同胞节点处拿的
 	 * 即commitHookEffectListDestory执行的始终是上一次的destory

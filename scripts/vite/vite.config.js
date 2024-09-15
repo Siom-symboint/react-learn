@@ -5,7 +5,8 @@ import { resolvePkgPath } from '../rollup/utils';
 const pkgPath = resolvePkgPath('react-dom');
 // https://vitejs.dev/config/
 export default defineConfig({
-	// plugins: [react()],
+	plugins: [react()],
+
 	resolve: {
 		// 配置别名
 		alias: [

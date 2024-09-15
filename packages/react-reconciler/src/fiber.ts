@@ -3,7 +3,7 @@ import { Fragment, FunctionComponent, HostComponent, WorkTag } from './workTag';
 import { Flags, NoFlags } from './fiberFlags';
 import { Container } from 'hostConfig';
 import { Lane, Lanes, NoLane, NoLanes } from './fiberLanes';
-import { Effect, FCUpdateQUeue } from './fiberHooks';
+import { Effect, FCUpdateQueue } from './fiberHooks';
 import { CallbackNode } from 'scheduler';
 
 export class FiberNode {
