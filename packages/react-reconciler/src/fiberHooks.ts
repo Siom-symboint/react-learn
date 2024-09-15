@@ -10,7 +10,7 @@ import {
 	Update,
 	UpdateQueue
 } from './updateQueue';
-import { Action } from 'shared/ReactTypes';
+import { Action, ReactContext } from 'shared/ReactTypes';
 import { scheduleUpdateOnFiber } from './workloop';
 import { Lane, NoLane, requestUpdateLane } from './fiberLanes';
 import { Flags, PassiveEffect } from './fiberFlags';
@@ -78,14 +78,24 @@ export function renderWithHooks(wip: FiberNode, lane: Lane) {
 const HooksDispatcherOnMount: Dispatcher = {
 	useState: mountState,
 	useEffect: mountEffect,
-	useTransition: mountTransition
+	useTransition: mountTransition,
+	useContext: readContext
 };
 
 const HooksDispatcherOnUpdate: Dispatcher = {
 	useState: updateState,
 	useEffect: updateEffect,
-	useTransition: updateTransition
+	useTransition: updateTransition,
+	useContext: readContext
 };
+
+function readContext<T>(context: ReactContext<T>): T {
+	const consumer = currentlyRendingFiber;
+	if (consumer === null) {
+		throw new Error('只能在函数组件中运行');
+	}
+	return context._currentValue;
+}
 
 function createFunctionComponentUpdateQueue<State>() {
 	const updateQueue = createUpdateQueue<State>() as FCUpdateQueue<State>;
@@ -215,6 +225,7 @@ function dispatchSetState<State>(
 
 function mountWorkInProgressHook(): Hook {
 	const hook: Hook = {
+		// 在state中为state的值, 在effect中为一条effect的环状链表，在transition中为start函数
 		memorizedState: null,
 		updateQueue: null,
 		next: null,
@@ -227,7 +238,7 @@ function mountWorkInProgressHook(): Hook {
 			throw new Error('请在函数组件内执行hook');
 		} else {
 			WorkinProgressHook = hook;
-			// 这里挂在当前的fiber中 即==>fiber.memorize
+			// 这里挂在当前的fiber中 即==>fiber.memorizedState
 			currentlyRendingFiber.memorizedState = WorkinProgressHook;
 		}
 	} else {

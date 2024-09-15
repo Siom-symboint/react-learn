@@ -4,6 +4,7 @@ import { ReactElementType } from 'shared/ReactTypes';
 import { FiberNode } from './fiber';
 import { processUpdateQueue, UpdateQueue } from './updateQueue';
 import {
+	ContextProvider,
 	Fragment,
 	FunctionComponent,
 	HostComponent,
@@ -13,6 +14,7 @@ import {
 import { mountChildFibers, reconcileChildFibers } from './childFibers';
 import { renderWithHooks } from './fiberHooks';
 import { Lane } from './fiberLanes';
+import { pushProvider } from './fiberContext';
 
 export const beginWork = (wip: FiberNode, renderLane: Lane) => {
 	switch (wip.tag) {
@@ -25,6 +27,8 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
 			return updateFunctionComponent(wip, renderLane);
 		case Fragment:
 			return updateFragment(wip);
+		case ContextProvider:
+			return updateContextProvider(wip);
 		case HostText:
 			return null;
 		default:
@@ -34,6 +38,18 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
 			return null;
 	}
 };
+
+function updateContextProvider(wip: FiberNode) {
+	const providerType = wip.type;
+	const context = providerType._context;
+	const newProps = wip.pendingProps;
+
+	pushProvider(context, newProps.value);
+
+	const nextChildren = newProps.children;
+	reconcileChildren(wip, nextChildren);
+	return wip.child;
+}
 
 function updateHostRoot(wip: FiberNode, renderLane: Lane) {
 	const baseState = wip.memorizedState;

@@ -4,8 +4,10 @@ import currentDispatcher, {
 	resolveDispatcher
 } from './src/currentDispatcher';
 import currentBatchConfig from './src/currentBatchconfig';
+export { createContext } from './src/context';
 
 export { isValidElement, Fragment } from './src/jsx';
+
 export const useState: Dispatcher['useState'] = (initialState: any) => {
 	const dispatcher = resolveDispatcher();
 	return dispatcher.useState(initialState);

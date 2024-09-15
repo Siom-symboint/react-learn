@@ -1,18 +1,21 @@
-import { useState, createContext, useContext } from 'react';
-import ReactDOM from 'react-dom/client';
+import React, { useState, createContext, useContext } from 'react';
+import ReactDOM from 'react-dom';
 
-const ctxA = createContext('deafult A');
+let a = 'originion value';
+const ctxA = createContext(a);
 const ctxB = createContext('default B');
 
 function App() {
 	return (
-		<ctxA.Provider value={'A0'}>
-			<ctxB.Provider value={'B0'}>
-				<ctxA.Provider value={'A1'}>
-					<Cpn />
-				</ctxA.Provider>
-			</ctxB.Provider>
+		<ctxA.Provider value={'a'}>
 			<Cpn />
+			<button
+				onClick={() => {
+					a = 'change';
+				}}
+			>
+				test
+			</button>
 		</ctxA.Provider>
 	);
 }
@@ -21,7 +24,11 @@ function Cpn() {
 	const a = useContext(ctxA);
 	const b = useContext(ctxB);
 	return (
-		<div>
+		<div
+			onClick={() => {
+				a;
+			}}
+		>
 			A: {a} B: {b}
 		</div>
 	);
